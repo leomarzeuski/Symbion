@@ -1,0 +1,9 @@
+project: billing-api
+envs:
+  - key: DATABASE_URL
+    description: URL of the local database
+    required: true
+    secret: false
+    default: ""
+    deprecated: false
+    replacement: ""

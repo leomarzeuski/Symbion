@@ -1,0 +1,23 @@
+project: billing-api
+envs:
+  - key: DATABASE_URL
+    description: URL of the local database
+    required: true
+    secret: false
+    default: ""
+    deprecated: false
+    replacement: ""
+  - key: API_KEY
+    description: API key used by local integrations
+    required: true
+    secret: true
+    default: ""
+    deprecated: false
+    replacement: ""
+  - key: REDIS_URL
+    description: URL of the local Redis instance
+    required: true
+    secret: false
+    default: redis://localhost:6379
+    deprecated: false
+    replacement: ""

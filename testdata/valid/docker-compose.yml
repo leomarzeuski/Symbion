@@ -1,0 +1,7 @@
+services:
+  api:
+    image: billing-api:local
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      API_KEY: ${API_KEY}
+      REDIS_URL: ${REDIS_URL:-redis://localhost:6379}

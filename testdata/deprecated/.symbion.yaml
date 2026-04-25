@@ -1,0 +1,23 @@
+project: billing-api
+envs:
+  - key: DATABASE_URL
+    description: URL of the local database
+    required: true
+    secret: false
+    default: ""
+    deprecated: false
+    replacement: ""
+  - key: API_KEY
+    description: API key used by local integrations
+    required: true
+    secret: true
+    default: ""
+    deprecated: false
+    replacement: ""
+  - key: OLD_API_KEY
+    description: Legacy API key
+    required: false
+    secret: true
+    default: ""
+    deprecated: true
+    replacement: API_KEY
