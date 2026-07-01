@@ -44,6 +44,7 @@ func NewRootCommand(out io.Writer, errOut io.Writer) *cobra.Command {
 	cmd.AddCommand(newUndoCommand())
 	cmd.AddCommand(newDiffCommand())
 	cmd.AddCommand(newRunCommand())
+	cmd.AddCommand(newExportCommand())
 
 	return cmd
 }
