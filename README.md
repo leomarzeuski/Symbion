@@ -23,6 +23,7 @@ It is built for the quiet problems that slow teams down: missing env vars, stale
 - Optionally encrypt saved profiles with Argon2id + AES-GCM.
 - Run any command with a profile's environment injected in memory, without writing secrets to disk (`symbion run`).
 - Print a profile's environment as shell `export` statements for `eval` (`symbion export`).
+- Auto-load a trusted project's `.env` into your shell on `cd`, direnv-style, with explicit trust (`symbion hook`).
 - Use meaningful exit codes for scripts and CI.
 - Write files atomically with a per-project lock.
 
@@ -195,6 +196,26 @@ Before writing, Symbion creates a backup under:
 ```text
 ~/.symbion/projects/<project>/backups/
 ```
+
+### `symbion hook`
+
+Auto-loads a trusted project's `.env` into your shell when you `cd` in (direnv-style), and unsets it
+when you leave. Add the integration to your `~/.zshrc`:
+
+```bash
+eval "$(symbion hook zsh)"
+```
+
+A directory only auto-loads after you trust it, and any edit to `.env` re-blocks it until you allow it
+again:
+
+```bash
+symbion allow    # trust this directory's .env for auto-load
+symbion deny     # revoke it
+```
+
+Only managed variables are loaded, and only the variables Symbion set are unset on leave — your other
+shell variables are untouched. zsh only for now.
 
 ### `symbion export`
 
