@@ -22,6 +22,7 @@ It is built for the quiet problems that slow teams down: missing env vars, stale
 - Preview changes with safe diffs that never print secret values.
 - Optionally encrypt saved profiles with Argon2id + AES-GCM.
 - Run any command with a profile's environment injected in memory, without writing secrets to disk (`symbion run`).
+- Print a profile's environment as shell `export` statements for `eval` (`symbion export`).
 - Use meaningful exit codes for scripts and CI.
 - Write files atomically with a per-project lock.
 
@@ -194,6 +195,20 @@ Before writing, Symbion creates a backup under:
 ```text
 ~/.symbion/projects/<project>/backups/
 ```
+
+### `symbion export`
+
+Prints the resolved managed environment (profile/`.env` values plus schema defaults) as POSIX
+`export` statements, for loading into your current shell:
+
+```bash
+eval "$(symbion export staging)"   # load a profile into the current shell
+symbion export                     # no profile, uses .env
+symbion export --strict prod       # exit 1 (emit nothing) if a required var is missing
+```
+
+Only managed variables are emitted (never your inherited shell). Values are single-quote escaped so
+they survive `eval`. Encrypted profiles are decrypted in memory (set `SYMBION_PASSPHRASE`).
 
 ### `symbion run`
 
