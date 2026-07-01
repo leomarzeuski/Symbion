@@ -55,7 +55,8 @@ func newExportCommand() *cobra.Command {
 }
 
 // shellQuote wraps a value in single quotes with POSIX-safe escaping so it
-// survives eval: a literal single quote becomes '\'' (close, escaped quote, reopen).
+// survives eval. A literal single quote is emitted as the standard
+// close-quote, escaped-quote, reopen-quote sequence.
 func shellQuote(v string) string {
 	return "'" + strings.ReplaceAll(v, "'", `'\''`) + "'"
 }
