@@ -21,6 +21,7 @@ It is built for the quiet problems that slow teams down: missing env vars, stale
 - Restore profiles with automatic backups.
 - Preview changes with safe diffs that never print secret values.
 - Optionally encrypt saved profiles with Argon2id + AES-GCM.
+- Run any command with a profile's environment injected in memory, without writing secrets to disk (`symbion run`).
 - Use meaningful exit codes for scripts and CI.
 - Write files atomically with a per-project lock.
 
@@ -87,6 +88,7 @@ Symbion creates a backup before replacing `.env`.
 3. Keep documentation and rules in `.symbion.yaml`.
 4. Run `symbion doctor` when envs change.
 5. Use `symbion save`, `symbion diff` and `symbion use` to manage local profiles.
+6. Use `symbion run <profile> -- <command>` to launch your app with a profile's values, without writing secrets to disk.
 
 ## Commands
 
@@ -192,6 +194,29 @@ Before writing, Symbion creates a backup under:
 ```text
 ~/.symbion/projects/<project>/backups/
 ```
+
+### `symbion run`
+
+Runs a command with a resolved environment injected, without writing secrets to disk:
+
+```bash
+symbion run staging -- npm run dev
+symbion run -- go test ./...          # no profile, uses .env
+```
+
+Resolution precedence (default): start from your shell, the profile overrides matching keys, and
+schema defaults fill anything still missing. Encrypted profiles are decrypted in memory only
+(set `SYMBION_PASSPHRASE`).
+
+Flags:
+
+- `--dry-run`: print the resolved environment (secret values masked) without running.
+- `--strict`: refuse to launch if a schema-required variable is missing.
+- `--isolated`: do not inherit the ambient shell; use only resolved vars plus OS essentials.
+- `--no-override`: let existing shell variables win over the profile.
+- `--show-values`: with `--dry-run`, reveal masked values.
+
+The command's exit code is propagated exactly. Secret values are never printed or written to disk.
 
 ### `symbion backups`
 
