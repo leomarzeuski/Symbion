@@ -104,8 +104,26 @@ type layer struct {
 //	--no-override: [defaults, source, shell]         (shell wins)
 //	--isolated:    [safeMinimum(shell), defaults, source]
 func Resolve(shell []string, source map[string]string, opts Options) []Var {
-	layers := buildLayers(shell, source, opts)
+	return flatten(buildLayers(shell, source, opts), opts.SecretKeys)
+}
 
+// Managed resolves only the managed variables: [defaults, source] with source
+// winning. It includes no shell layer and no safe-minimum, for callers that
+// load into an existing environment (e.g. `symbion export`). sourceName ("" =>
+// SourceEnvFile) attributes the source layer.
+func Managed(source, defaults map[string]string, secretKeys map[string]bool, sourceName Source) []Var {
+	if sourceName == "" {
+		sourceName = SourceEnvFile
+	}
+	return flatten([]layer{
+		{name: SourceDefault, values: defaults},
+		{name: sourceName, values: source},
+	}, secretKeys)
+}
+
+// flatten merges ordered layers (later wins), marks secrets, and returns Vars
+// sorted by Key.
+func flatten(layers []layer, secretKeys map[string]bool) []Var {
 	type entry struct {
 		value  string
 		source Source
@@ -123,7 +141,7 @@ func Resolve(shell []string, source map[string]string, opts Options) []Var {
 			Key:    k,
 			Value:  e.value,
 			Source: e.source,
-			Secret: opts.SecretKeys[k] || looksSensitive(k),
+			Secret: secretKeys[k] || looksSensitive(k),
 		})
 	}
 	sort.Slice(vars, func(i, j int) bool { return vars[i].Key < vars[j].Key })

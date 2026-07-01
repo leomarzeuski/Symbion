@@ -149,3 +149,34 @@ func TestResolveMarksSecrets(t *testing.T) {
 		t.Error("PLAIN should not be secret")
 	}
 }
+
+func TestManaged(t *testing.T) {
+	source := map[string]string{"FOO": "src", "MY_TOKEN": "t"}
+	defaults := map[string]string{"FOO": "def", "BAZ": "dv"}
+
+	vars := Managed(source, defaults, map[string]bool{}, SourceProfile)
+
+	// source wins over default
+	foo, _ := findVar(vars, "FOO")
+	if foo.Value != "src" || foo.Source != SourceProfile {
+		t.Errorf("FOO = %#v, want src/profile", foo)
+	}
+	// default fills a key missing from source
+	baz, _ := findVar(vars, "BAZ")
+	if baz.Value != "dv" || baz.Source != SourceDefault {
+		t.Errorf("BAZ = %#v, want dv/default", baz)
+	}
+	// no shell variables leak in
+	if _, ok := findVar(vars, "PATH"); ok {
+		t.Error("Managed must not include shell variables")
+	}
+	// secret marking via heuristic still works
+	tok, _ := findVar(vars, "MY_TOKEN")
+	if !tok.Secret {
+		t.Error("MY_TOKEN should be marked secret")
+	}
+	// sorted by key (BAZ first)
+	if vars[0].Key != "BAZ" {
+		t.Errorf("not sorted: first = %q", vars[0].Key)
+	}
+}
