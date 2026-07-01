@@ -46,6 +46,7 @@ func PrintDoctorReport(w io.Writer, report doctor.Report) {
 	p.checkList("Missing for docker-compose", report.MissingForCompose)
 	p.checkList("Extra in .env", report.ExtraInEnv)
 	p.checkList("Extra in .env.example", report.ExtraInEnvExample)
+	p.valueViolations(report.InvalidValues)
 	p.printf("\n")
 
 	p.section("Summary")
@@ -142,6 +143,18 @@ func (p printer) deprecated(item doctor.DeprecatedUsage) string {
 	}
 
 	return fmt.Sprintf("%s -> use %s", p.warn(item.Key), p.ok(item.Replacement))
+}
+
+func (p printer) valueViolations(items []doctor.ValueViolation) {
+	if len(items) == 0 {
+		p.printf("  %s Invalid values: none\n", p.ok("[OK]"))
+		return
+	}
+
+	p.printf("  %s Invalid values:\n", p.warn("[!]"))
+	for _, item := range items {
+		p.printf("      - %s: %s\n", p.warn(item.Key), item.Reason)
+	}
 }
 
 func (p printer) footer() {

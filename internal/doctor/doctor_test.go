@@ -3,6 +3,8 @@ package doctor
 import (
 	"path/filepath"
 	"testing"
+
+	"github.com/leonardomarzeuski/symbion/internal/schema"
 )
 
 func TestInspectProjectValid(t *testing.T) {
@@ -91,4 +93,35 @@ func assertContains(t *testing.T, values []string, want string) {
 	}
 
 	t.Fatalf("%#v does not contain %q", values, want)
+}
+
+func TestAnalyzeInvalidValues(t *testing.T) {
+	report := Analyze(Inputs{
+		Schema: schema.Schema{
+			Project: "p",
+			Envs: []schema.EnvSpec{
+				{Key: "PORT", Type: "port"},
+				{Key: "ENVIRONMENT", Enum: []string{"dev", "prod"}},
+				{Key: "DATABASE_URL", Type: "url"},
+			},
+		},
+		Env: map[string]string{
+			"PORT":         "70000",
+			"ENVIRONMENT":  "qa",
+			"DATABASE_URL": "postgres://localhost:5432/db",
+		},
+		EnvExample:      map[string]string{"PORT": "", "ENVIRONMENT": "", "DATABASE_URL": ""},
+		SchemaFileFound: true,
+		EnvFileFound:    true,
+	})
+
+	if len(report.InvalidValues) != 2 {
+		t.Fatalf("InvalidValues = %#v, want 2 (PORT, ENVIRONMENT)", report.InvalidValues)
+	}
+	if report.InvalidValues[0].Key != "ENVIRONMENT" || report.InvalidValues[1].Key != "PORT" {
+		t.Fatalf("keys/order = %#v, want ENVIRONMENT then PORT", report.InvalidValues)
+	}
+	if report.IssueCount() != 2 {
+		t.Fatalf("IssueCount = %d, want 2", report.IssueCount())
+	}
 }

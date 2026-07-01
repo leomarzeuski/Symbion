@@ -8,6 +8,7 @@ import (
 
 	"github.com/leonardomarzeuski/symbion/internal/parser"
 	"github.com/leonardomarzeuski/symbion/internal/schema"
+	"github.com/leonardomarzeuski/symbion/internal/validate"
 )
 
 type Inputs struct {
@@ -26,6 +27,11 @@ type DeprecatedUsage struct {
 	Replacement string
 }
 
+type ValueViolation struct {
+	Key    string
+	Reason string
+}
+
 type Report struct {
 	Project             string
 	TrackedVariables    int
@@ -39,6 +45,7 @@ type Report struct {
 	ExtraInEnv          []string
 	ExtraInEnvExample   []string
 	DeprecatedInEnv     []DeprecatedUsage
+	InvalidValues       []ValueViolation
 }
 
 func InspectProject(root string) (Report, error) {
@@ -129,6 +136,22 @@ func Analyze(input Inputs) Report {
 		}
 	}
 
+	for _, spec := range input.Schema.Envs {
+		if spec.Deprecated {
+			continue
+		}
+		value, ok := input.Env[spec.Key]
+		if !ok {
+			continue
+		}
+		if spec.Type == "" && len(spec.Enum) == 0 && spec.Pattern == "" {
+			continue
+		}
+		if reason, valid := validate.Value(spec, value); !valid {
+			report.InvalidValues = append(report.InvalidValues, ValueViolation{Key: spec.Key, Reason: reason})
+		}
+	}
+
 	sort.Strings(report.ComposeFiles)
 	sort.Strings(report.MissingInEnv)
 	sort.Strings(report.MissingInEnvExample)
@@ -136,6 +159,9 @@ func Analyze(input Inputs) Report {
 	sort.Strings(report.ExtraInEnv)
 	sort.Strings(report.ExtraInEnvExample)
 	sortDeprecated(report.DeprecatedInEnv)
+	sort.Slice(report.InvalidValues, func(i, j int) bool {
+		return report.InvalidValues[i].Key < report.InvalidValues[j].Key
+	})
 
 	return report
 }
@@ -146,7 +172,8 @@ func (r Report) IssueCount() int {
 		len(r.MissingForCompose) +
 		len(r.ExtraInEnv) +
 		len(r.ExtraInEnvExample) +
-		len(r.DeprecatedInEnv)
+		len(r.DeprecatedInEnv) +
+		len(r.InvalidValues)
 }
 
 func (r Report) HasIssues() bool {

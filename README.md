@@ -120,6 +120,7 @@ It checks:
 - Docker Compose references missing from `.env`
 - extra variables in `.env` or `.env.example`
 - deprecated variables and replacements
+- values that violate their declared type, enum, or pattern
 
 Exit codes:
 
@@ -303,6 +304,9 @@ Fields:
 - `default`: documented default value
 - `deprecated`: whether the key should be removed
 - `replacement`: suggested replacement for deprecated keys
+- `type`: optional value type to validate (`int`, `bool`, `port`, `url`, `duration`, `string`)
+- `enum`: optional list of allowed values
+- `pattern`: optional regular expression the value must match
 
 ## Security
 
