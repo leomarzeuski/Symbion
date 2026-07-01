@@ -16,6 +16,8 @@ It is built for the quiet problems that slow teams down: missing env vars, stale
 ## Features
 
 - Detect missing, extra and deprecated environment variables.
+- Validate `.env` values against declared types, enums and patterns.
+- Discover env vars referenced in your source code (`symbion scan --code`).
 - Compare `.env`, `.env.example`, `.symbion.yaml` and Docker Compose references.
 - Save reusable `.env` profiles per project.
 - Restore profiles with automatic backups.
@@ -108,6 +110,13 @@ envs: []
 Reads `.env.example` and adds discovered keys to `.symbion.yaml`.
 
 New keys are marked as required by default.
+
+With `--code`, it also scans your source for env var references (`process.env.X`, `os.Getenv("X")`,
+`os.environ['X']`, `import.meta.env.X`, `ENV['X']`) and adds any undocumented keys:
+
+```bash
+symbion scan --code
+```
 
 ### `symbion doctor`
 
