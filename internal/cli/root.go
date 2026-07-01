@@ -45,6 +45,10 @@ func NewRootCommand(out io.Writer, errOut io.Writer) *cobra.Command {
 	cmd.AddCommand(newDiffCommand())
 	cmd.AddCommand(newRunCommand())
 	cmd.AddCommand(newExportCommand())
+	cmd.AddCommand(newAllowCommand())
+	cmd.AddCommand(newDenyCommand())
+	cmd.AddCommand(newHookCommand())
+	cmd.AddCommand(newHookEnvCommand())
 
 	return cmd
 }
