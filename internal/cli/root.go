@@ -43,6 +43,7 @@ func NewRootCommand(out io.Writer, errOut io.Writer) *cobra.Command {
 	cmd.AddCommand(newBackupsCommand())
 	cmd.AddCommand(newUndoCommand())
 	cmd.AddCommand(newDiffCommand())
+	cmd.AddCommand(newRunCommand())
 
 	return cmd
 }
