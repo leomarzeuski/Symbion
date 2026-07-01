@@ -3,7 +3,10 @@
 // variables, marking which ones are secret. It performs no I/O.
 package resolve
 
-import "strings"
+import (
+	"sort"
+	"strings"
+)
 
 type Source string
 
@@ -86,4 +89,68 @@ func parseEnviron(environ []string) map[string]string {
 		}
 	}
 	return m
+}
+
+// layer is one contributor to the merged environment. Later layers win.
+type layer struct {
+	name   Source
+	values map[string]string
+}
+
+// Resolve merges the layers implied by opts and returns the result sorted by
+// Key. Precedence, lowest to highest:
+//
+//	default:       [defaults, shell, source]        (source/profile wins)
+//	--no-override: [defaults, source, shell]         (shell wins)
+//	--isolated:    [safeMinimum(shell), defaults, source]
+func Resolve(shell []string, source map[string]string, opts Options) []Var {
+	layers := buildLayers(shell, source, opts)
+
+	type entry struct {
+		value  string
+		source Source
+	}
+	merged := make(map[string]entry)
+	for _, l := range layers {
+		for k, v := range l.values {
+			merged[k] = entry{value: v, source: l.name}
+		}
+	}
+
+	vars := make([]Var, 0, len(merged))
+	for k, e := range merged {
+		vars = append(vars, Var{
+			Key:    k,
+			Value:  e.value,
+			Source: e.source,
+			Secret: opts.SecretKeys[k] || looksSensitive(k),
+		})
+	}
+	sort.Slice(vars, func(i, j int) bool { return vars[i].Key < vars[j].Key })
+	return vars
+}
+
+func buildLayers(shell []string, source map[string]string, opts Options) []layer {
+	shellMap := parseEnviron(shell)
+
+	sourceName := opts.SourceName
+	if sourceName == "" {
+		sourceName = SourceEnvFile
+	}
+	defaults := layer{name: SourceDefault, values: opts.Defaults}
+	src := layer{name: sourceName, values: source}
+
+	if !opts.InheritShell {
+		return []layer{
+			{name: SourceSafeMin, values: safeMinimum(shellMap)},
+			defaults,
+			src,
+		}
+	}
+
+	shellLayer := layer{name: SourceShell, values: shellMap}
+	if opts.Override {
+		return []layer{defaults, shellLayer, src}
+	}
+	return []layer{defaults, src, shellLayer}
 }
