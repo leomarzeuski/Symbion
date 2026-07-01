@@ -17,13 +17,16 @@ type Schema struct {
 }
 
 type EnvSpec struct {
-	Key         string `yaml:"key"`
-	Description string `yaml:"description"`
-	Required    bool   `yaml:"required"`
-	Secret      bool   `yaml:"secret"`
-	Default     string `yaml:"default"`
-	Deprecated  bool   `yaml:"deprecated"`
-	Replacement string `yaml:"replacement"`
+	Key         string   `yaml:"key"`
+	Description string   `yaml:"description"`
+	Required    bool     `yaml:"required"`
+	Secret      bool     `yaml:"secret"`
+	Default     string   `yaml:"default"`
+	Deprecated  bool     `yaml:"deprecated"`
+	Replacement string   `yaml:"replacement"`
+	Type        string   `yaml:"type,omitempty"`
+	Enum        []string `yaml:"enum,omitempty"`
+	Pattern     string   `yaml:"pattern,omitempty"`
 }
 
 func New(project string) *Schema {
