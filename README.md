@@ -11,6 +11,7 @@ It is built for the quiet problems that slow teams down: missing env vars, stale
 .env.local        local-only overrides layered on top of .env
 .env.example      safe template for the team
 .symbion.yaml     documented environment contract
+.symbion/shared/  encrypted profiles shared with your team (committed)
 ~/.symbion/       local profiles and backups
 ```
 
@@ -23,6 +24,7 @@ It is built for the quiet problems that slow teams down: missing env vars, stale
 - Layer `.env.local` overrides on top of `.env` (local values win) across doctor, run, export and hook.
 - Store the encryption passphrase in the macOS Keychain (`symbion passphrase set`).
 - Gate CI on schema / `.env.example` drift, no `.env` required (`symbion doctor --no-env`).
+- Share encrypted profiles with your team through git (`symbion share` / `symbion adopt`).
 - Compare `.env`, `.env.example`, `.symbion.yaml` and Docker Compose references.
 - Save reusable `.env` profiles per project.
 - Restore profiles with automatic backups.
@@ -311,6 +313,20 @@ Restores the latest automatic backup:
 ```bash
 symbion undo
 ```
+
+## Team sync
+
+Share environment profiles with your team through git, without a backend. `share` encrypts the current
+`.env` into a committable file; teammates `adopt` it after pulling:
+
+```bash
+export SYMBION_PASSPHRASE="a-shared-team-secret"   # or: symbion passphrase set
+symbion share staging      # writes .symbion/shared/staging.enc (commit it)
+symbion adopt staging      # decrypts it into .env (backs up the current one first)
+```
+
+Only ciphertext (Argon2id + AES-GCM) is committed, so it is safe to keep in the repository. Share the
+passphrase out of band; git handles distribution and conflicts.
 
 ## Schema
 
