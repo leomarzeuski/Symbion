@@ -414,13 +414,14 @@ go run ../../cmd/symbion doctor
 
 ## Roadmap
 
-- JSON output
-- `.env.local` support
-- source-code scanning for `process.env.*`, `os.Getenv(...)` and similar patterns
-- stronger schema validation with types, enums and patterns
-- macOS Keychain support for passphrases
-- encrypted team sync
-- GitHub Actions and deployment-provider integrations
+The original roadmap has shipped: JSON output, `.env.local` support, source-code scanning, typed schema
+validation (types, enums, patterns), macOS Keychain, encrypted team sync, and CI integration.
+
+Possible future work:
+
+- Windows support for `symbion hook`
+- prior-value restore on hook unload (direnv-grade)
+- deployment-provider integrations (Vercel, Fly.io, and similar)
 
 ## License
 
