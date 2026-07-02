@@ -17,8 +17,47 @@ func TestHookZshSnippet(t *testing.T) {
 }
 
 func TestHookUnsupportedShell(t *testing.T) {
-	if _, _, err := runCommand(t, t.TempDir(), "hook", "bash"); err == nil {
-		t.Fatal("hook bash should error")
+	if _, _, err := runCommand(t, t.TempDir(), "hook", "powershell"); err == nil {
+		t.Fatal("hook powershell should error")
+	}
+}
+
+func TestHookBashSnippet(t *testing.T) {
+	out, _, err := runCommand(t, t.TempDir(), "hook", "bash")
+	if err != nil {
+		t.Fatalf("hook bash error = %v", err)
+	}
+	if !strings.Contains(out, "PROMPT_COMMAND") || !strings.Contains(out, "symbion hook-env bash") {
+		t.Fatalf("bash snippet missing pieces:\n%s", out)
+	}
+}
+
+func TestHookFishSnippet(t *testing.T) {
+	out, _, err := runCommand(t, t.TempDir(), "hook", "fish")
+	if err != nil {
+		t.Fatalf("hook fish error = %v", err)
+	}
+	if !strings.Contains(out, "fish_prompt") || !strings.Contains(out, "symbion hook-env fish") {
+		t.Fatalf("fish snippet missing pieces:\n%s", out)
+	}
+}
+
+func TestHookEnvFishSyntax(t *testing.T) {
+	dir := t.TempDir()
+	t.Setenv("HOME", t.TempDir())
+	writeFile(t, filepath.Join(dir, ".env"), "FOO=bar\n")
+	if _, _, err := runCommand(t, dir, "allow"); err != nil {
+		t.Fatalf("allow error = %v", err)
+	}
+	t.Setenv("SYMBION_LOADED", "OLD")
+	out, _, err := runCommand(t, dir, "hook-env", "fish")
+	if err != nil {
+		t.Fatalf("hook-env fish error = %v", err)
+	}
+	for _, want := range []string{"set -e OLD", "set -gx FOO 'bar'", "set -gx SYMBION_LOADED 'FOO'"} {
+		if !strings.Contains(out, want) {
+			t.Fatalf("missing %q in fish output:\n%s", want, out)
+		}
 	}
 }
 

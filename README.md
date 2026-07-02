@@ -219,10 +219,12 @@ Before writing, Symbion creates a backup under:
 ### `symbion hook`
 
 Auto-loads a trusted project's `.env` into your shell when you `cd` in (direnv-style), and unsets it
-when you leave. Add the integration to your `~/.zshrc`:
+when you leave. Add the integration to your shell config:
 
 ```bash
-eval "$(symbion hook zsh)"
+eval "$(symbion hook zsh)"    # ~/.zshrc
+eval "$(symbion hook bash)"   # ~/.bashrc
+symbion hook fish | source    # ~/.config/fish/config.fish
 ```
 
 A directory only auto-loads after you trust it, and any edit to `.env` re-blocks it until you allow it
@@ -234,7 +236,7 @@ symbion deny     # revoke it
 ```
 
 Only managed variables are loaded, and only the variables Symbion set are unset on leave — your other
-shell variables are untouched. zsh only for now.
+shell variables are untouched. Supported shells: zsh, bash, fish.
 
 ### `symbion export`
 
