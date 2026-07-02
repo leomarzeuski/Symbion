@@ -20,6 +20,7 @@ type doctorJSON struct {
 
 func newDoctorCommand() *cobra.Command {
 	var asJSON bool
+	var noEnv bool
 
 	cmd := &cobra.Command{
 		Use:   "doctor",
@@ -30,7 +31,11 @@ func newDoctorCommand() *cobra.Command {
 				return err
 			}
 
-			report, err := doctor.InspectProject(cwd)
+			inspect := doctor.InspectProject
+			if noEnv {
+				inspect = doctor.InspectProjectSchemaOnly
+			}
+			report, err := inspect(cwd)
 			if err != nil {
 				return err
 			}
@@ -54,5 +59,6 @@ func newDoctorCommand() *cobra.Command {
 	}
 
 	cmd.Flags().BoolVar(&asJSON, "json", false, "output the report as JSON")
+	cmd.Flags().BoolVar(&noEnv, "no-env", false, "only check schema/.env.example drift; ignore .env")
 	return cmd
 }

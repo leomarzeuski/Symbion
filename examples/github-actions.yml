@@ -1,0 +1,22 @@
+# Example workflow: gate CI on your environment contract with Symbion.
+# Copy this into .github/workflows/ in your own project.
+name: env-contract
+
+on: [push, pull_request]
+
+jobs:
+  symbion:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+
+      - name: Install Symbion
+        run: go install github.com/leonardomarzeuski/symbion/cmd/symbion@latest
+
+      # .env is not committed, so validate schema / .env.example drift only.
+      - name: Check the environment contract
+        run: symbion doctor --no-env

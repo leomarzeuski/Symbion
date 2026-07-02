@@ -22,6 +22,7 @@ It is built for the quiet problems that slow teams down: missing env vars, stale
 - Emit `doctor` results as JSON for CI and tooling (`symbion doctor --json`).
 - Layer `.env.local` overrides on top of `.env` (local values win) across doctor, run, export and hook.
 - Store the encryption passphrase in the macOS Keychain (`symbion passphrase set`).
+- Gate CI on schema / `.env.example` drift, no `.env` required (`symbion doctor --no-env`).
 - Compare `.env`, `.env.example`, `.symbion.yaml` and Docker Compose references.
 - Save reusable `.env` profiles per project.
 - Restore profiles with automatic backups.
@@ -139,6 +140,13 @@ For machine-readable output (CI, tooling), add `--json`:
 
 ```bash
 symbion doctor --json
+```
+
+In CI (where `.env` is absent), use `--no-env` to check only that `.env.example` stays in sync with the
+schema:
+
+```bash
+symbion doctor --no-env
 ```
 
 Exit codes:
@@ -353,6 +361,17 @@ Symbion is local-first.
 - Encrypted profiles use Argon2id + AES-GCM.
 
 Do not commit `.env` or unencrypted profile files.
+
+## Continuous Integration
+
+Gate CI on your environment contract. Because `.env` is never committed, use `--no-env` to validate
+that `.env.example` stays in sync with `.symbion.yaml`:
+
+```bash
+symbion doctor --no-env
+```
+
+A ready-to-copy GitHub Actions workflow is in [`examples/github-actions.yml`](examples/github-actions.yml).
 
 ## Development
 

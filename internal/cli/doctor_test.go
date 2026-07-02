@@ -47,3 +47,23 @@ func TestDoctorJSON(t *testing.T) {
 		t.Fatalf("expected empty invalid_values as []:\n%s", out)
 	}
 }
+
+func TestDoctorNoEnvIgnoresMissingEnv(t *testing.T) {
+	dir := t.TempDir()
+	writeFile(t, filepath.Join(dir, ".symbion.yaml"),
+		"project: demo\nenvs:\n  - key: API_KEY\n    required: true\n")
+	writeFile(t, filepath.Join(dir, ".env.example"), "API_KEY=\n")
+	// no .env at all (as in CI)
+
+	// normal doctor: API_KEY required but missing from .env -> exit 1
+	_, _, err := runCommand(t, dir, "doctor")
+	var exitErr *ExitError
+	if !errors.As(err, &exitErr) || exitErr.Code != 1 {
+		t.Fatalf("doctor expected exit 1, got %v", err)
+	}
+
+	// --no-env: schema/example consistent -> exit 0
+	if _, _, err := runCommand(t, dir, "doctor", "--no-env"); err != nil {
+		t.Fatalf("doctor --no-env expected success, got %v", err)
+	}
+}

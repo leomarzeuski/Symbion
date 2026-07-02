@@ -20,6 +20,7 @@ type Inputs struct {
 	EnvFileFound     bool
 	EnvExampleFound  bool
 	SchemaFileFound  bool
+	IgnoreEnv        bool
 }
 
 type DeprecatedUsage struct {
@@ -49,6 +50,16 @@ type Report struct {
 }
 
 func InspectProject(root string) (Report, error) {
+	return inspect(root, false)
+}
+
+// InspectProjectSchemaOnly validates schema/.env.example drift while ignoring
+// .env (useful in CI, where .env is absent).
+func InspectProjectSchemaOnly(root string) (Report, error) {
+	return inspect(root, true)
+}
+
+func inspect(root string, ignoreEnv bool) (Report, error) {
 	schemaPath := filepath.Join(root, schema.DefaultFilename)
 	loadedSchema, err := schema.Load(schemaPath)
 	if err != nil {
@@ -82,6 +93,7 @@ func InspectProject(root string) (Report, error) {
 		EnvFileFound:     envFound,
 		EnvExampleFound:  envExampleFound,
 		SchemaFileFound:  true,
+		IgnoreEnv:        ignoreEnv,
 	}), nil
 }
 
@@ -105,16 +117,18 @@ func Analyze(input Inputs) Report {
 	specsByKey := input.Schema.SpecByKey()
 	for _, spec := range input.Schema.Envs {
 		if spec.Deprecated {
-			if _, ok := input.Env[spec.Key]; ok {
-				report.DeprecatedInEnv = append(report.DeprecatedInEnv, DeprecatedUsage{
-					Key:         spec.Key,
-					Replacement: spec.Replacement,
-				})
+			if !input.IgnoreEnv {
+				if _, ok := input.Env[spec.Key]; ok {
+					report.DeprecatedInEnv = append(report.DeprecatedInEnv, DeprecatedUsage{
+						Key:         spec.Key,
+						Replacement: spec.Replacement,
+					})
+				}
 			}
 			continue
 		}
 
-		if spec.Required {
+		if !input.IgnoreEnv && spec.Required {
 			if _, ok := input.Env[spec.Key]; !ok {
 				report.MissingInEnv = append(report.MissingInEnv, spec.Key)
 			}
@@ -125,15 +139,17 @@ func Analyze(input Inputs) Report {
 		}
 	}
 
-	for _, variable := range input.ComposeVariables {
-		if _, ok := input.Env[variable]; !ok {
-			report.MissingForCompose = append(report.MissingForCompose, variable)
+	if !input.IgnoreEnv {
+		for _, variable := range input.ComposeVariables {
+			if _, ok := input.Env[variable]; !ok {
+				report.MissingForCompose = append(report.MissingForCompose, variable)
+			}
 		}
-	}
 
-	for key := range input.Env {
-		if _, ok := specsByKey[key]; !ok {
-			report.ExtraInEnv = append(report.ExtraInEnv, key)
+		for key := range input.Env {
+			if _, ok := specsByKey[key]; !ok {
+				report.ExtraInEnv = append(report.ExtraInEnv, key)
+			}
 		}
 	}
 
@@ -143,19 +159,21 @@ func Analyze(input Inputs) Report {
 		}
 	}
 
-	for _, spec := range input.Schema.Envs {
-		if spec.Deprecated {
-			continue
-		}
-		value, ok := input.Env[spec.Key]
-		if !ok {
-			continue
-		}
-		if spec.Type == "" && len(spec.Enum) == 0 && spec.Pattern == "" {
-			continue
-		}
-		if reason, valid := validate.Value(spec, value); !valid {
-			report.InvalidValues = append(report.InvalidValues, ValueViolation{Key: spec.Key, Reason: reason})
+	if !input.IgnoreEnv {
+		for _, spec := range input.Schema.Envs {
+			if spec.Deprecated {
+				continue
+			}
+			value, ok := input.Env[spec.Key]
+			if !ok {
+				continue
+			}
+			if spec.Type == "" && len(spec.Enum) == 0 && spec.Pattern == "" {
+				continue
+			}
+			if reason, valid := validate.Value(spec, value); !valid {
+				report.InvalidValues = append(report.InvalidValues, ValueViolation{Key: spec.Key, Reason: reason})
+			}
 		}
 	}
 

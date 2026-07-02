@@ -148,3 +148,23 @@ func TestInspectProjectEnvLocalOverlay(t *testing.T) {
 		}
 	}
 }
+
+func TestAnalyzeIgnoreEnv(t *testing.T) {
+	report := Analyze(Inputs{
+		Schema: schema.Schema{
+			Project: "p",
+			Envs:    []schema.EnvSpec{{Key: "API_KEY", Required: true, Type: "int"}},
+		},
+		Env:             map[string]string{"API_KEY": "not-an-int", "EXTRA": "x"},
+		EnvExample:      map[string]string{"API_KEY": ""},
+		SchemaFileFound: true,
+		IgnoreEnv:       true,
+	})
+
+	if len(report.MissingInEnv) != 0 || len(report.ExtraInEnv) != 0 || len(report.InvalidValues) != 0 {
+		t.Fatalf("env-dependent checks should be skipped: %#v", report)
+	}
+	if report.HasIssues() {
+		t.Fatalf("schema/example consistent, expected no issues: %#v", report)
+	}
+}
