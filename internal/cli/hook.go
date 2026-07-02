@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"path/filepath"
 	"sort"
 	"strings"
 
@@ -58,7 +57,7 @@ func emitHookEnv(stdout, stderr io.Writer) {
 
 	target := map[string]string{}
 	if cwd, err := os.Getwd(); err == nil {
-		if env, found, lerr := parser.LoadEnvFile(filepath.Join(cwd, ".env")); lerr == nil && found {
+		if env, found, lerr := parser.LoadLocalEnv(cwd); lerr == nil && found {
 			if store, serr := trust.NewDefaultStore(); serr == nil {
 				trusted, terr := store.IsTrusted(cwd)
 				switch {

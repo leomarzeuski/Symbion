@@ -1,6 +1,7 @@
 package doctor
 
 import (
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -123,5 +124,27 @@ func TestAnalyzeInvalidValues(t *testing.T) {
 	}
 	if report.IssueCount() != 2 {
 		t.Fatalf("IssueCount = %d, want 2", report.IssueCount())
+	}
+}
+
+func TestInspectProjectEnvLocalOverlay(t *testing.T) {
+	dir := t.TempDir()
+	writeF := func(name, content string) {
+		if err := os.WriteFile(filepath.Join(dir, name), []byte(content), 0o600); err != nil {
+			t.Fatal(err)
+		}
+	}
+	writeF(".symbion.yaml", "project: p\nenvs:\n  - key: API_KEY\n    required: true\n")
+	writeF(".env", "")
+	writeF(".env.local", "API_KEY=local\n")
+
+	report, err := InspectProject(dir)
+	if err != nil {
+		t.Fatalf("InspectProject: %v", err)
+	}
+	for _, k := range report.MissingInEnv {
+		if k == "API_KEY" {
+			t.Fatal("API_KEY should be satisfied by .env.local")
+		}
 	}
 }

@@ -58,7 +58,7 @@ func InspectProject(root string) (Report, error) {
 		return Report{}, err
 	}
 
-	env, envFound, err := parser.LoadEnvFile(filepath.Join(root, ".env"))
+	env, envFound, err := parser.LoadLocalEnv(root)
 	if err != nil {
 		return Report{}, err
 	}

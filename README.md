@@ -8,6 +8,7 @@ It is built for the quiet problems that slow teams down: missing env vars, stale
 
 ```text
 .env              real local values, never committed
+.env.local        local-only overrides layered on top of .env
 .env.example      safe template for the team
 .symbion.yaml     documented environment contract
 ~/.symbion/       local profiles and backups
@@ -19,6 +20,7 @@ It is built for the quiet problems that slow teams down: missing env vars, stale
 - Validate `.env` values against declared types, enums and patterns.
 - Discover env vars referenced in your source code (`symbion scan --code`).
 - Emit `doctor` results as JSON for CI and tooling (`symbion doctor --json`).
+- Layer `.env.local` overrides on top of `.env` (local values win) across doctor, run, export and hook.
 - Compare `.env`, `.env.example`, `.symbion.yaml` and Docker Compose references.
 - Save reusable `.env` profiles per project.
 - Restore profiles with automatic backups.

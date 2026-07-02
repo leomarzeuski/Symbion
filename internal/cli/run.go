@@ -119,16 +119,12 @@ func optionalSchema(cwd string) (*schema.Schema, bool) {
 func loadRunSource(cwd, profile string, s *schema.Schema, schemaFound bool) (map[string]string, resolve.Source, error) {
 	switch profile {
 	case "", ".env", "env", "current":
-		data, err := os.ReadFile(filepath.Join(cwd, ".env"))
+		values, found, err := parser.LoadLocalEnv(cwd)
 		if err != nil {
-			if os.IsNotExist(err) {
-				return nil, "", fmt.Errorf(".env not found")
-			}
 			return nil, "", err
 		}
-		values, err := parser.ParseEnv(data)
-		if err != nil {
-			return nil, "", fmt.Errorf("parse .env: %w", err)
+		if !found {
+			return nil, "", fmt.Errorf(".env not found")
 		}
 		return values, resolve.SourceEnvFile, nil
 	default:
