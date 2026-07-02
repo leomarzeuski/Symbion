@@ -18,6 +18,7 @@ It is built for the quiet problems that slow teams down: missing env vars, stale
 - Detect missing, extra and deprecated environment variables.
 - Validate `.env` values against declared types, enums and patterns.
 - Discover env vars referenced in your source code (`symbion scan --code`).
+- Emit `doctor` results as JSON for CI and tooling (`symbion doctor --json`).
 - Compare `.env`, `.env.example`, `.symbion.yaml` and Docker Compose references.
 - Save reusable `.env` profiles per project.
 - Restore profiles with automatic backups.
@@ -130,6 +131,12 @@ It checks:
 - extra variables in `.env` or `.env.example`
 - deprecated variables and replacements
 - values that violate their declared type, enum, or pattern
+
+For machine-readable output (CI, tooling), add `--json`:
+
+```bash
+symbion doctor --json
+```
 
 Exit codes:
 

@@ -23,29 +23,29 @@ type Inputs struct {
 }
 
 type DeprecatedUsage struct {
-	Key         string
-	Replacement string
+	Key         string `json:"key"`
+	Replacement string `json:"replacement"`
 }
 
 type ValueViolation struct {
-	Key    string
-	Reason string
+	Key    string `json:"key"`
+	Reason string `json:"reason"`
 }
 
 type Report struct {
-	Project             string
-	TrackedVariables    int
-	EnvFileFound        bool
-	EnvExampleFound     bool
-	SchemaFileFound     bool
-	ComposeFiles        []string
-	MissingInEnv        []string
-	MissingInEnvExample []string
-	MissingForCompose   []string
-	ExtraInEnv          []string
-	ExtraInEnvExample   []string
-	DeprecatedInEnv     []DeprecatedUsage
-	InvalidValues       []ValueViolation
+	Project             string            `json:"project"`
+	TrackedVariables    int               `json:"tracked_variables"`
+	EnvFileFound        bool              `json:"env_file_found"`
+	EnvExampleFound     bool              `json:"env_example_found"`
+	SchemaFileFound     bool              `json:"schema_file_found"`
+	ComposeFiles        []string          `json:"compose_files"`
+	MissingInEnv        []string          `json:"missing_in_env"`
+	MissingInEnvExample []string          `json:"missing_in_env_example"`
+	MissingForCompose   []string          `json:"missing_for_compose"`
+	ExtraInEnv          []string          `json:"extra_in_env"`
+	ExtraInEnvExample   []string          `json:"extra_in_env_example"`
+	DeprecatedInEnv     []DeprecatedUsage `json:"deprecated_in_env"`
+	InvalidValues       []ValueViolation  `json:"invalid_values"`
 }
 
 func InspectProject(root string) (Report, error) {
@@ -87,12 +87,19 @@ func InspectProject(root string) (Report, error) {
 
 func Analyze(input Inputs) Report {
 	report := Report{
-		Project:          input.Schema.Project,
-		TrackedVariables: len(input.Schema.Envs),
-		EnvFileFound:     input.EnvFileFound,
-		EnvExampleFound:  input.EnvExampleFound,
-		SchemaFileFound:  input.SchemaFileFound,
-		ComposeFiles:     append([]string{}, input.ComposeFiles...),
+		Project:             input.Schema.Project,
+		TrackedVariables:    len(input.Schema.Envs),
+		EnvFileFound:        input.EnvFileFound,
+		EnvExampleFound:     input.EnvExampleFound,
+		SchemaFileFound:     input.SchemaFileFound,
+		ComposeFiles:        append([]string{}, input.ComposeFiles...),
+		MissingInEnv:        []string{},
+		MissingInEnvExample: []string{},
+		MissingForCompose:   []string{},
+		ExtraInEnv:          []string{},
+		ExtraInEnvExample:   []string{},
+		DeprecatedInEnv:     []DeprecatedUsage{},
+		InvalidValues:       []ValueViolation{},
 	}
 
 	specsByKey := input.Schema.SpecByKey()
